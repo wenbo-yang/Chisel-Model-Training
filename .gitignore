@@ -50,6 +50,7 @@ web_modules/
 
 # Optional npm cache directory
 .npm
+.buildcache
 
 # Optional eslint cache
 .eslintcache
@@ -128,3 +129,13 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# package-lock
+package-lock.json
+
+# ignore test data
+*test.bmp
+node_modules
+
+# ignore dev database
+/dev/localStorage
