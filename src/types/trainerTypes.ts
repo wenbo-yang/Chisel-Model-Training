@@ -1,5 +1,5 @@
 export interface UploadTrainingDataRequestBody {
-    character: string;
+    model: string;
     dataType: TRAININGDATATYPE;
     compression: COMPRESSIONTYPE;
     data: string[];
@@ -34,24 +34,13 @@ export enum COMPRESSIONTYPE {
 }
 
 export interface TrainingData {
-    character: string;
+    model: string;
     data: Map<string, string>;
 }
 
 export interface SavedTrainingData {
-    character: string;
+    model: string;
     data: string[][];
-}
-
-export interface ServiceConfig {
-    serviceName: string;
-    shortName: string;
-    storage: Storage[];
-}
-
-export interface ServicePorts {
-    http: number;
-    https: number;
 }
 
 export interface Storage {
@@ -60,14 +49,11 @@ export interface Storage {
 }
 
 export interface IConfig {
-    shortName: string;
-    serviceUUID: string;
-    serviceName: string;
+    modelUUID: string;
     trainingDataHeight: number;
     trainingDataWidth: number;
     storageUrl: string;
     env: string;
-    servicePorts: ServicePorts;
 }
 
 export class NotFoundError extends Error {

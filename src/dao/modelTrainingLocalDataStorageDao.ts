@@ -1,5 +1,5 @@
 import { Config } from '../config';
-import { CharacterTrainingDataStorageDao } from './characterTrainingDataStorageDao';
+import { ModelTrainingDataStorageDao } from './modelTrainingDataStorageDao';
 import { v5 as uuidv5 } from 'uuid';
 import fs from 'fs/promises';
 import * as fsSync from 'fs';
@@ -7,7 +7,7 @@ import { IConfig, SavedTrainingData } from '../types/trainerTypes';
 import { deleteAllFilesInFolder } from './daoUtils';
 import path from 'path';
 
-export class CharacterTrainingLocalDataStorageDao extends CharacterTrainingDataStorageDao {
+export class ModelTrainingLocalDataStorageDao extends ModelTrainingDataStorageDao {
     private config: IConfig;
     constructor(config?: IConfig) {
         super();
@@ -15,7 +15,7 @@ export class CharacterTrainingLocalDataStorageDao extends CharacterTrainingDataS
     }
 
     public override async getCurrentTrainingData(character: string): Promise<Map<string, string>> {
-        const uuid = uuidv5(character, this.config.serviceUUID);
+        const uuid = uuidv5(character, this.config.modelUUID);
         const filePath = this.config.storageUrl + '/data/' + uuid + '.json';
 
         if (!fsSync.existsSync(filePath)) {
@@ -28,15 +28,15 @@ export class CharacterTrainingLocalDataStorageDao extends CharacterTrainingDataS
         return new Map(trainingData.data);
     }
 
-    public override async saveData(character: string, newData: Map<string, string>): Promise<void> {
-        const uuid = uuidv5(character, this.config.serviceUUID);
+    public override async saveData(model: string, newData: Map<string, string>): Promise<void> {
+        const uuid = uuidv5(model, this.config.modelUUID);
         const filePath = this.config.storageUrl + '/data/' + uuid + '.json';
 
         if (!fsSync.existsSync(this.config.storageUrl + '/data')) {
             await fs.mkdir(this.config.storageUrl + '/data', { recursive: true });
         }
 
-        const output = JSON.stringify({ character, data: Array.from(newData.entries()) } as SavedTrainingData);
+        const output = JSON.stringify({ model, data: Array.from(newData.entries()) } as SavedTrainingData);
 
         await fs.writeFile(filePath, output);
     }
@@ -57,8 +57,8 @@ export class CharacterTrainingLocalDataStorageDao extends CharacterTrainingDataS
         return savedTrainingData;
     }
 
-    public override async deleteSelectedCharacterTrainingData(character: string): Promise<void> {
-        const uuid = uuidv5(character, this.config.serviceUUID);
+    public override async deleteSelectedModelTrainingData(character: string): Promise<void> {
+        const uuid = uuidv5(character, this.config.modelUUID);
         const filePath = this.config.storageUrl + '/data/' + uuid + '.json';
 
         if (fsSync.existsSync(filePath)) {

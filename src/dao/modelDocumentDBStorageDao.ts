@@ -1,8 +1,8 @@
 import { Config } from '../config';
 import { IConfig } from '../types/trainerTypes';
-import { CharacterTrainingDataStorageDao } from './characterTrainingDataStorageDao';
+import { ModelStorageDao } from './modelStorageDao';
 
-export class CharacterTrainingDocumentDBStorageDao extends CharacterTrainingDataStorageDao {
+export class ModelDocumentDBStorageDao extends ModelStorageDao {
     private config: IConfig;
     constructor(config?: IConfig) {
         super();

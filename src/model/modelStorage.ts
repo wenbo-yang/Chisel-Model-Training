@@ -1,17 +1,17 @@
 import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 import { Config } from '../config';
 import { IConfig, ModelTrainingExecution, TRAININGSTATUS, TrainModelResponse } from '../types/trainerTypes';
-import { CharacterModelStorageDao } from '../dao/characterModelStorageDao';
-import { CharacterStorageDaoFactory } from '../dao/characterStorageDaoFactory';
+import { ModelStorageDao } from '../dao/modelStorageDao';
+import { StorageDaoFactory } from '../dao/storageDaoFactory';
 import { ReadStream } from 'fs';
 
-export class CharacterModelStorage {
+export class ModelStorage {
 
     private config: IConfig;
-    private characterModelStorageDao: CharacterModelStorageDao;
-    constructor(config?: IConfig, characterModelStorageDao?: CharacterModelStorageDao) {
+    private modelStorageDao: ModelStorageDao;
+    constructor(config?: IConfig, modelStorageDao?: ModelStorageDao) {
         this.config = config || new Config();
-        this.characterModelStorageDao = characterModelStorageDao || CharacterStorageDaoFactory.makeModelStorageDao(this.config);
+        this.modelStorageDao = modelStorageDao || StorageDaoFactory.makeModelStorageDao(this.config);
     }
 
     public async getCharacterModel(): Promise<INeuralNetworkJSON> {
@@ -19,32 +19,32 @@ export class CharacterModelStorage {
     }
 
     public async createTrainingSession(): Promise<ModelTrainingExecution> {
-        return await this.characterModelStorageDao.createTrainingSession();
+        return await this.modelStorageDao.createTrainingSession();
     }
 
     public async startModelTraining(): Promise<ModelTrainingExecution> {
-        const latestModel = await this.characterModelStorageDao.getLatestModel();
+        const latestModel = await this.modelStorageDao.getLatestModel();
 
         if (latestModel.status === TRAININGSTATUS.FINISHED) {
             return latestModel;
         }
 
-        return await this.characterModelStorageDao.changeTrainingModelStatus(latestModel.executionId, TRAININGSTATUS.INPROGRESS);
+        return await this.modelStorageDao.changeTrainingModelStatus(latestModel.executionId, TRAININGSTATUS.INPROGRESS);
     }
 
     public async saveModel(executionId: string, modelToBeSaved: INeuralNetworkJSON): Promise<void> {
-        await this.characterModelStorageDao.saveModel(executionId, modelToBeSaved);
+        await this.modelStorageDao.saveModel(executionId, modelToBeSaved);
     }
 
     public async getModelTrainingExecution(executionId: string): Promise<ModelTrainingExecution> {
-        return await this.characterModelStorageDao.getModelTrainingExecution(executionId);
+        return await this.modelStorageDao.getModelTrainingExecution(executionId);
     }
 
     public async getLatestTrainedModel(): Promise<ReadStream> {
-        return await this.characterModelStorageDao.getLatestTrainedModel();
+        return await this.modelStorageDao.getLatestTrainedModel();
     }
 
     public async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
-        return await this.characterModelStorageDao.getTrainedModelByExecutionId(executionId);
+        return await this.modelStorageDao.getTrainedModelByExecutionId(executionId);
     }
 }

@@ -1,11 +1,10 @@
 {
-    "name": "chisel-character-training",
+    "name": "chisel-model-training",
     "version": "1.0.0",
     "description": "",
     "scripts": {
         "tests": "npx jest --runInBand --testPathPattern=./test/unit",
         "build": "npx tsc",
-        "start": "node dist/src/app.js",
         "watch": "npx tsc --watch",
         "prettier-ts": "prettier --parser typescript --config prettier.json --write \"**/*.ts\"",
         "prettier-json": "prettier --config prettier.json --write \"**/*.json\"",

@@ -1,8 +1,8 @@
-import { CharacterTrainingLocalDataStorageDao } from '../../../src/dao/characterTrainingLocalDataStorageDao';
+import { ModelTrainingLocalDataStorageDao } from '../../../src/dao/modelTrainingLocalDataStorageDao';
 
-describe('characterTrainingLocalStorageDao', () => {
+describe('modelTrainingLocalStorageDao', () => {
     it('should be able to save data read data to and from local storage', async () => {
-        const storageDao = new CharacterTrainingLocalDataStorageDao();
+        const storageDao = new ModelTrainingLocalDataStorageDao();
         await storageDao.saveData(
             'test_char',
             new Map([
@@ -13,7 +13,7 @@ describe('characterTrainingLocalStorageDao', () => {
 
         const result = await storageDao.getCurrentTrainingData('test_char');
 
-        await storageDao.deleteSelectedCharacterTrainingData('test_char');
+        await storageDao.deleteSelectedModelTrainingData('test_char');
 
         expect(result).toBeDefined();
         expect(result.get('key1')).toEqual('value1');

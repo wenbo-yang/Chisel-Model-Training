@@ -1,6 +1,6 @@
 import { Config } from '../config';
 import { IConfig, ModelTrainingExecution, NotFoundError, TRAININGSTATUS } from '../types/trainerTypes';
-import { CharacterModelStorageDao } from './characterModelStorageDao';
+import { ModelStorageDao } from './modelStorageDao';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
 import fsSync, { ReadStream } from 'fs';
@@ -8,7 +8,7 @@ import path from 'path';
 import { deleteAllFilesInFolder } from './daoUtils';
 import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 
-export class CharacterModelLocalDataStorageDao extends CharacterModelStorageDao {
+export class ModelLocalDataStorageDao extends ModelStorageDao {
     private config: IConfig;
     constructor(config?: IConfig) {
         super();

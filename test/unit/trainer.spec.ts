@@ -1,9 +1,9 @@
-import { httpsUrl, integrationTestConfig } from '../utils';
+import { httpsUrl, integrationTestConfig } from './utils';
 import axios, { HttpStatusCode } from 'axios';
 import https from 'https';
 import fs from 'fs/promises';
-import { COMPRESSIONTYPE, ModelTrainingExecution, TRAININGDATATYPE, TRAININGSTATUS } from '../../../src/types/trainerTypes';
-import { CharacterStorageDaoFactory } from '../../../src/dao/characterStorageDaoFactory';
+import { COMPRESSIONTYPE, ModelTrainingExecution, TRAININGDATATYPE, TRAININGSTATUS } from '../../src/types/trainerTypes';
+import { StorageDaoFactory } from '../../src/dao/storageDaoFactory';
 import { v4 as uuidv4 } from 'uuid';
 
 const axiosClient = axios.create({
@@ -15,8 +15,8 @@ const axiosClient = axios.create({
 describe('skeletonize request', () => {
     const trainingDataUrl = './test/integration/data/test_data_for_character_training_running_man.json';
     let trainingData: any = {};
-    const modelStorage = CharacterStorageDaoFactory.makeModelStorageDao(integrationTestConfig);
-    const trainingDataStroage = CharacterStorageDaoFactory.makeTrainingDataStorageDao(integrationTestConfig);
+    const modelStorage = StorageDaoFactory.makeModelStorageDao(integrationTestConfig);
+    const trainingDataStroage = StorageDaoFactory.makeTrainingDataStorageDao(integrationTestConfig);
 
     beforeAll(async () => {
         trainingData = JSON.parse((await fs.readFile(trainingDataUrl)).toString());
@@ -31,7 +31,7 @@ describe('skeletonize request', () => {
         });
     });
 
-    describe('training character', () => {
+    describe('training a character', () => {
         describe('POST /trainingData', () => {
             const uploadTrainingDataUrl = httpsUrl + '/trainingData';
 
@@ -42,7 +42,7 @@ describe('skeletonize request', () => {
 
             it('should respond with 201 created with new train request', async () => {
                 const response = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -53,7 +53,7 @@ describe('skeletonize request', () => {
 
             it('should respond with 201 created with new data request of the same character', async () => {
                 const firstResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -72,7 +72,7 @@ describe('skeletonize request', () => {
 
             it('should respond with 208 AlreadyReported when sending same data of the same character', async () => {
                 const firstResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -101,7 +101,7 @@ describe('skeletonize request', () => {
 
             it('should respond with with 201 created when request train a new model', async () => {
                 const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -132,7 +132,7 @@ describe('skeletonize request', () => {
 
             it('should respond with with 200 created when getting the status of an existing training execution', async () => {
                 const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -153,7 +153,7 @@ describe('skeletonize request', () => {
 
             it('should respond with with 200 when getting the status of a finished execution', async () => {
                 const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -191,7 +191,7 @@ describe('skeletonize request', () => {
 
             it('should respond with with 200 when getting the model of the latest trained execution', async () => {
                 const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
@@ -234,7 +234,7 @@ describe('skeletonize request', () => {
 
             it('should respond with with 200 when getting the model of a finished execution_id', async () => {
                 const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],

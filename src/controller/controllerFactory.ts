@@ -1,8 +1,8 @@
 import { Config } from '../config';
-import { CharacterTrainingController } from './characterTrainingController';
+import { ModelTrainingController } from './modelTrainingController';
 
 export class ControllerFactory {
-    public static makeCharacterTrainingController(config?: Config): CharacterTrainingController {
-        return new CharacterTrainingController(config);
+    public static makeModelTrainingController(config?: Config): ModelTrainingController {
+        return new ModelTrainingController(config);
     }
 }

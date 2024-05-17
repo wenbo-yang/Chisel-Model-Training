@@ -1,5 +1,4 @@
-import { CharacterModelStorage } from './characterModelStorage';
-import { CharacterTrainingDataStorage } from './characterTrainingDataStorage';
+import { ModelStorage } from './modelStorage';
 import { IConfig, ModelTrainingExecution, TRAININGSTATUS, TrainingData } from '../types/trainerTypes';
 import { Config } from '../config';
 import { v5 as uuidv5 } from 'uuid';
@@ -7,19 +6,20 @@ import { NeuralNetwork } from 'brain.js';
 import { ungzip } from 'node-gzip';
 import { INeuralNetworkData, INeuralNetworkDatum, INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 import { ReadStream } from 'fs';
+import { ModelTrainingDataStorage } from './modelTrainingDataStorage';
 
-export class CharacterTrainingModel {
+export class ModelTrainingModel {
     private config: IConfig;
-    private characterModelStorage: CharacterModelStorage;
-    private characterTrainingDataStorage: CharacterTrainingDataStorage;
+    private modelStorage: ModelStorage;
+    private modelTrainingDataStorage: ModelTrainingDataStorage;
 
-    constructor(config?: IConfig, characterModelStorage?: CharacterModelStorage, characterTrainingDataStorage?: CharacterTrainingDataStorage) {
+    constructor(config?: IConfig, modelStorage?: ModelStorage, modelTrainingDataStorage?: ModelTrainingDataStorage) {
         this.config = config || new Config();
-        this.characterModelStorage = characterModelStorage || new CharacterModelStorage(this.config);
-        this.characterTrainingDataStorage = characterTrainingDataStorage || new CharacterTrainingDataStorage(this.config);
+        this.modelStorage = modelStorage || new ModelStorage(this.config);
+        this.modelTrainingDataStorage = modelTrainingDataStorage || new ModelTrainingDataStorage(this.config);
     }
 
-    public async storeTrainingData(character: string, uncompressedData: string[], compressedData: string[]): Promise<TRAININGSTATUS> {
+    public async storeTrainingData(model: string, uncompressedData: string[], compressedData: string[]): Promise<TRAININGSTATUS> {
         // ensure data size //
         // will implement later
         if (uncompressedData.find((d) => d.split('\n').length !== this.config.trainingDataHeight || d.split('\n')[0].length !== this.config.trainingDataWidth)) {
@@ -29,21 +29,21 @@ export class CharacterTrainingModel {
         const data: Map<string, string> = new Map();
 
         for (let i = 0; i < compressedData.length; i++) {
-            const key = uuidv5(compressedData[i], this.config.serviceUUID);
+            const key = uuidv5(compressedData[i], this.config.modelUUID);
             if (!data.has(key)) {
                 data.set(key, compressedData[i]);
             }
         }
 
         const trainingData: TrainingData = {
-            character,
+            model,
             data,
         };
 
-        const newDataSaved = await this.characterTrainingDataStorage.saveData(trainingData);
+        const newDataSaved = await this.modelTrainingDataStorage.saveData(trainingData);
 
         if (newDataSaved) {
-            await this.characterModelStorage.createTrainingSession();
+            await this.modelStorage.createTrainingSession();
             return TRAININGSTATUS.CREATED;
         }
 
@@ -51,11 +51,11 @@ export class CharacterTrainingModel {
     }
 
     public async startModelTraining(): Promise<ModelTrainingExecution> {
-        return await this.characterModelStorage.startModelTraining();
+        return await this.modelStorage.startModelTraining();
     }
 
     public async trainModel(executionId: string): Promise<void> {
-        const savedTrainingData = await this.characterTrainingDataStorage.getAllTrainingData();
+        const savedTrainingData = await this.modelTrainingDataStorage.getAllTrainingData();
 
         const net = new NeuralNetwork();
 
@@ -66,7 +66,7 @@ export class CharacterTrainingModel {
                 const processedData = await this.processSavedData(savedTrainingData[i].data[j][1]); // note data[j][0] is the key
 
                 let output: any = {};
-                output[savedTrainingData[i].character] = 1;
+                output[savedTrainingData[i].model] = 1;
                 let input: INeuralNetworkData = processedData;
                 trainingData.push({ input, output });
             }
@@ -74,19 +74,19 @@ export class CharacterTrainingModel {
 
         await net.trainAsync(trainingData);
         const modelToBeSaved: INeuralNetworkJSON = net.toJSON();
-        await this.characterModelStorage.saveModel(executionId, modelToBeSaved);
+        await this.modelStorage.saveModel(executionId, modelToBeSaved);
     }
 
     public async getModelTrainingExecution(executionId: string): Promise<ModelTrainingExecution> {
-        return await this.characterModelStorage.getModelTrainingExecution(executionId);
+        return await this.modelStorage.getModelTrainingExecution(executionId);
     }
 
     public async getLatestTrainedModel(): Promise<ReadStream> {
-        return await this.characterModelStorage.getLatestTrainedModel();
+        return await this.modelStorage.getLatestTrainedModel();
     }
 
     public async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
-        return await this.characterModelStorage.getTrainedModelByExecutionId(executionId);
+        return await this.modelStorage.getTrainedModelByExecutionId(executionId);
     }
 
     private async processSavedData(data: string): Promise<number[]> {

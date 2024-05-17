@@ -1,19 +1,19 @@
 import { Request, Response } from 'express-serve-static-core';
 import { ParsedQs } from 'qs';
 import { Config } from '../config';
-import { CharacterTrainingModel } from '../model/characterTrainingModel';
+import { ModelTrainingModel } from '../model/modelTrainingModel';
 import { gzip, ungzip } from 'node-gzip';
 import { COMPRESSIONTYPE, DoNotRespondError, IConfig, ModelTrainingExecution, NotFoundError, TRAININGDATATYPE, TRAININGSTATUS, TrainModelResponse, UploadTrainingDataRequestBody } from '../types/trainerTypes';
 import { HttpStatusCode } from 'axios';
 
-export class CharacterTrainingController {
+export class ModelTrainingController {
 
     private config: IConfig;
-    private characterTrainingModel: CharacterTrainingModel;
+    private modelTrainingModel: ModelTrainingModel;
 
-    constructor(config?: IConfig, characterTrainingModel?: CharacterTrainingModel) {
+    constructor(config?: IConfig, modelTrainingModel?: ModelTrainingModel) {
         this.config = config || new Config();
-        this.characterTrainingModel = characterTrainingModel || new CharacterTrainingModel(this.config);
+        this.modelTrainingModel = modelTrainingModel || new ModelTrainingModel(this.config);
     }
 
     public async uploadTrainingData(req: Request<{}, any, any, ParsedQs, Record<string, any>>): Promise<HttpStatusCode> {
@@ -28,7 +28,7 @@ export class CharacterTrainingController {
             throw new Error('DataType other than BINARYSTRINGWITHNEWLINE are NOT IMPLEMENTED!!!');
         }
 
-        const trainingDataStatus = await this.characterTrainingModel.storeTrainingData(requestBody.character, uncompressedData, compressedData);
+        const trainingDataStatus = await this.modelTrainingModel.storeTrainingData(requestBody.model, uncompressedData, compressedData);
 
         let responseCode = HttpStatusCode.Ok;
         if (trainingDataStatus === TRAININGSTATUS.CREATED) {
@@ -41,7 +41,7 @@ export class CharacterTrainingController {
     }
 
     public async trainModel(res: Response<any, Record<string, any>, number>): Promise<void> {
-        const modelTrainingExecution = await this.characterTrainingModel.startModelTraining();
+        const modelTrainingExecution = await this.modelTrainingModel.startModelTraining();
         if (modelTrainingExecution.status === TRAININGSTATUS.FINISHED) {
             res.status(HttpStatusCode.AlreadyReported).send(modelTrainingExecution);
         } else {
@@ -49,19 +49,19 @@ export class CharacterTrainingController {
         }
 
         try {
-            await this.characterTrainingModel.trainModel(modelTrainingExecution.executionId);
+            await this.modelTrainingModel.trainModel(modelTrainingExecution.executionId);
         } catch (e) {
             throw new DoNotRespondError(e as Error);
         }
     }
 
     public async getModelTrainingExecution(req: Request<{ executionId: string }, any, any, ParsedQs, Record<string, any>>): Promise<ModelTrainingExecution> {
-        return await this.characterTrainingModel.getModelTrainingExecution(req.params.executionId);
+        return await this.modelTrainingModel.getModelTrainingExecution(req.params.executionId);
     }
 
     public async getLatestTrainedModel(res: Response<any, Record<string, any>, number>): Promise<void> {
         try {
-            const fsReadStream = await this.characterTrainingModel.getLatestTrainedModel();
+            const fsReadStream = await this.modelTrainingModel.getLatestTrainedModel();
             fsReadStream.pipe(res);
         }
         catch (e) {
@@ -78,7 +78,7 @@ export class CharacterTrainingController {
         try {
             const executionId = req.params.executionId
 
-            const fsReadStream = await this.characterTrainingModel.getTrainedModelByExecutionId(executionId);
+            const fsReadStream = await this.modelTrainingModel.getTrainedModelByExecutionId(executionId);
             fsReadStream.pipe(res);
         }
         catch (e) {

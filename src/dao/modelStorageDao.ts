@@ -2,7 +2,7 @@ import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 import { ModelTrainingExecution, TRAININGSTATUS } from '../types/trainerTypes';
 import { ReadStream } from 'fs';
 
-export abstract class CharacterModelStorageDao {
+export abstract class ModelStorageDao {
 
 
     constructor() {}
