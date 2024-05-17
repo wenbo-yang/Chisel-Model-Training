@@ -12,7 +12,7 @@ const axiosClient = axios.create({
     }),
 });
 
-const httpsUrl = ''
+const httpsUrl = '';
 
 describe('skeletonize request', () => {
     const trainingDataUrl = './test/integration/data/test_data_for_character_training_running_man.json';
@@ -216,10 +216,10 @@ describe('skeletonize request', () => {
                 expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.FINISHED);
                 expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).modelPath).toBeDefined();
 
-                const latestModel =  await axiosClient.get(getLatestModel);
-                
-                expect(latestModel.data).toBeDefined()
-                expect(latestModel.data.type).toEqual('NeuralNetwork')
+                const latestModel = await axiosClient.get(getLatestModel);
+
+                expect(latestModel.data).toBeDefined();
+                expect(latestModel.data.type).toEqual('NeuralNetwork');
             }, 10000);
         });
 
@@ -259,10 +259,10 @@ describe('skeletonize request', () => {
                 expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.FINISHED);
                 expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).modelPath).toBeDefined();
 
-                const modelByExecutionIdResponse =  await axiosClient.get(getModelByExeutionId + '/' + (getModelTrainingExecutionResponse.data as ModelTrainingExecution).executionId);
-                
-                expect(modelByExecutionIdResponse.data).toBeDefined()
-                expect(modelByExecutionIdResponse.data.type).toEqual('NeuralNetwork')
+                const modelByExecutionIdResponse = await axiosClient.get(getModelByExeutionId + '/' + (getModelTrainingExecutionResponse.data as ModelTrainingExecution).executionId);
+
+                expect(modelByExecutionIdResponse.data).toBeDefined();
+                expect(modelByExecutionIdResponse.data.type).toEqual('NeuralNetwork');
             }, 10000);
         });
     });

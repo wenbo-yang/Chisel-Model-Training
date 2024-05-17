@@ -96,7 +96,7 @@ export class ModelLocalDataStorageDao extends ModelStorageDao {
 
     public override async getLatestTrainedModel(): Promise<ReadStream> {
         const executions = await this.getExecutions();
-        let modelPath = undefined
+        let modelPath = undefined;
         for (const execution of executions) {
             if (execution.status === TRAININGSTATUS.FINISHED) {
                 modelPath = execution.modelPath;
@@ -105,7 +105,7 @@ export class ModelLocalDataStorageDao extends ModelStorageDao {
         }
 
         if (!modelPath) {
-            this.notFoundError('getLatestTrainedModel: no model found')
+            this.notFoundError('getLatestTrainedModel: no model found');
         }
 
         return fsSync.createReadStream(modelPath);
@@ -113,12 +113,12 @@ export class ModelLocalDataStorageDao extends ModelStorageDao {
 
     public override async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
         const execution = await this.getModelTrainingExecution(executionId);
-        
+
         if (execution.status !== TRAININGSTATUS.FINISHED) {
             this.notFoundError(`getTrainedModelByExecutionId: ${executionId} model has not finished training yet. Current status: ${execution.status}`);
         }
 
-        return fsSync.createReadStream(execution.modelPath)
+        return fsSync.createReadStream(execution.modelPath);
     }
 
     private get folderPath(): string {

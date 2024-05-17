@@ -1,12 +1,11 @@
 import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 import { Config } from '../config';
-import { IConfig, ModelTrainingExecution, TRAININGSTATUS, TrainModelResponse } from '../types/trainerTypes';
+import { IConfig, ModelTrainingExecution, TRAININGSTATUS } from '../types/trainerTypes';
 import { ModelStorageDao } from '../dao/modelStorageDao';
 import { StorageDaoFactory } from '../dao/storageDaoFactory';
 import { ReadStream } from 'fs';
 
 export class ModelStorage {
-
     private config: IConfig;
     private modelStorageDao: ModelStorageDao;
     constructor(config?: IConfig, modelStorageDao?: ModelStorageDao) {
