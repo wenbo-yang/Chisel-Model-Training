@@ -1,4 +1,4 @@
-import { httpsUrl, integrationTestConfig } from './utils';
+import { integrationTestConfig } from './utils';
 import axios, { HttpStatusCode } from 'axios';
 import https from 'https';
 import fs from 'fs/promises';
@@ -11,6 +11,8 @@ const axiosClient = axios.create({
         rejectUnauthorized: false,
     }),
 });
+
+const httpsUrl = ''
 
 describe('skeletonize request', () => {
     const trainingDataUrl = './test/integration/data/test_data_for_character_training_running_man.json';
