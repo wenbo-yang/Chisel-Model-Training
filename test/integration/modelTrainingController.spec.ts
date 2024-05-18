@@ -13,7 +13,7 @@ export class SampleModelTrainingController extends ModelTrainingController {
         super(config || integrationTestConfig);
     }
 
-    public override async uploadTrainingData(uploadTrainingData: UploadTrainingData): Promise<TRAININGSTATUS> { 
+    public override async uploadTrainingData(uploadTrainingData: UploadTrainingData): Promise<TRAININGSTATUS> {
         return await super.uploadTrainingData(uploadTrainingData);
     }
 

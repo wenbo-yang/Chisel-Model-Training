@@ -11,7 +11,7 @@ export class ModelTrainingController {
     private modelTrainingModel: ModelTrainingModel;
 
     constructor(config?: IConfig, modelTrainingModel?: ModelTrainingModel) {
-        this.config = config || new Config;
+        this.config = config || new Config();
         this.modelTrainingModel = modelTrainingModel || new ModelTrainingModel(this.config);
     }
 
