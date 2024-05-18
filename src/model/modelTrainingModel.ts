@@ -23,7 +23,9 @@ export class ModelTrainingModel {
         // ensure data size //
         // will implement later
         if (uncompressedData.find((d) => d.split('\n').length !== this.config.trainingDataHeight || d.split('\n')[0].length !== this.config.trainingDataWidth)) {
-            throw new Error('Data size incompatible, resizing will be implemented later.');
+            const rows = uncompressedData[0].split('\n').length;
+            const cols = uncompressedData[0].split('\n')[0].length;
+            throw new Error(`Data size incompatible, resizing will be implemented later. current size ${rows} ${cols}`);
         }
 
         const data: Map<string, string> = new Map();

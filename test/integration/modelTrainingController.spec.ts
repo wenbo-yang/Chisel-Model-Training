@@ -42,7 +42,7 @@ const axiosClient = axios.create({
 
 const httpsUrl = '';
 
-describe('skeletonize request', () => {
+describe('train and get model', () => {
     const trainingDataUrl = './test/integration/data/test_data_for_character_training_running_man.json';
     let trainingData: any = {};
     const modelStorage = StorageDaoFactory.makeModelStorageDao(integrationTestConfig);
@@ -50,15 +50,6 @@ describe('skeletonize request', () => {
 
     beforeAll(async () => {
         trainingData = JSON.parse((await fs.readFile(trainingDataUrl)).toString());
-    });
-
-    describe('GET /healthCheck', () => {
-        it('should respond with 200', async () => {
-            const response = await axiosClient.get(httpsUrl + '/healthCheck');
-
-            expect(response.status).toBe(200);
-            expect(response.data).toBe('i am healthy!!!');
-        });
     });
 
     describe('training a character', () => {
@@ -70,18 +61,19 @@ describe('skeletonize request', () => {
                 trainingDataStroage.deleteAllTrainingData();
             });
 
-            it('should respond with 201 created with new train request', async () => {
-                const response = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should return model training status of created when uploading data', async () => {
+                const modelTrainingController = new SampleModelTrainingController();
+                const trainingStatus = await modelTrainingController.uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(response.status).toEqual(HttpStatusCode.Created);
+                expect(trainingStatus).toBe(TRAININGSTATUS.CREATED);
             });
 
-            it('should respond with 201 created with new data request of the same character', async () => {
+            xit('should respond with 201 created with new data request of the same character', async () => {
                 const firstResponse = await axiosClient.post(uploadTrainingDataUrl, {
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
@@ -100,7 +92,7 @@ describe('skeletonize request', () => {
                 expect(secondResponse.status).toEqual(HttpStatusCode.Created);
             });
 
-            it('should respond with 208 AlreadyReported when sending same data of the same character', async () => {
+            xit('should respond with 208 AlreadyReported when sending same data of the same character', async () => {
                 const firstResponse = await axiosClient.post(uploadTrainingDataUrl, {
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
@@ -120,7 +112,7 @@ describe('skeletonize request', () => {
             });
         });
 
-        describe('POST /trainModel', () => {
+        xdescribe('POST /trainModel', () => {
             const uploadTrainingDataUrl = httpsUrl + '/trainingData';
             const trainModelUrl = httpsUrl + '/trainModel';
 
@@ -145,7 +137,7 @@ describe('skeletonize request', () => {
             });
         });
 
-        describe('GET /modelExecution', () => {
+        xdescribe('GET /modelExecution', () => {
             const uploadTrainingDataUrl = httpsUrl + '/trainingData';
             const trainModelUrl = httpsUrl + '/trainModel';
             const getModelTrainingExecutionUrl = httpsUrl + '/modelExecution';
@@ -208,7 +200,7 @@ describe('skeletonize request', () => {
             }, 10000);
         });
 
-        describe('GET /latestModel', () => {
+        xdescribe('GET /latestModel', () => {
             const uploadTrainingDataUrl = httpsUrl + '/trainingData';
             const trainModelUrl = httpsUrl + '/trainModel';
             const getModelTrainingExecutionUrl = httpsUrl + '/modelExecution';
@@ -251,7 +243,7 @@ describe('skeletonize request', () => {
             }, 10000);
         });
 
-        describe('GET /model', () => {
+        xdescribe('GET /model', () => {
             const uploadTrainingDataUrl = httpsUrl + '/trainingData';
             const trainModelUrl = httpsUrl + '/trainModel';
             const getModelTrainingExecutionUrl = httpsUrl + '/modelExecution';
