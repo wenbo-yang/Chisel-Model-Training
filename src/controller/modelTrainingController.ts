@@ -11,7 +11,7 @@ export class ModelTrainingController {
     private modelTrainingModel: ModelTrainingModel;
 
     constructor(config?: IConfig, modelTrainingModel?: ModelTrainingModel) {
-        this.config = config || new Config();
+        this.config = config || new Config;
         this.modelTrainingModel = modelTrainingModel || new ModelTrainingModel(this.config);
     }
 
@@ -36,16 +36,16 @@ export class ModelTrainingController {
         return modelTrainingExecution;
     }
 
-    protected async getModelTrainingExecution(req: Request<{ executionId: string }, any, any, ParsedQs, Record<string, any>>): Promise<ModelTrainingExecution> {
-        return await this.modelTrainingModel.getModelTrainingExecution(req.params.executionId);
+    protected async getModelTrainingExecution(executionId: string): Promise<ModelTrainingExecution> {
+        return await this.modelTrainingModel.getModelTrainingExecution(executionId);
     }
 
-    protected async getLatestTrainedModel(res: Response<any, Record<string, any>, number>): Promise<ReadStream> {
+    protected async getLatestTrainedModel(): Promise<ReadStream> {
         const fsReadStream = await this.modelTrainingModel.getLatestTrainedModel();
         return fsReadStream;
     }
 
-    public async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
+    protected async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
         const fsReadStream = await this.modelTrainingModel.getTrainedModelByExecutionId(executionId);
         return fsReadStream;
     }

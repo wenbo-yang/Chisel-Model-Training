@@ -7,3 +7,4 @@ export const integrationTestConfig = {
     storageUrl: './dev/localStorage',
     env: 'development',
 } as IConfig;
+

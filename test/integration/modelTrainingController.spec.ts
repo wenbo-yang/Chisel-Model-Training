@@ -1,10 +1,38 @@
-import { integrationTestConfig } from './utils';
+import { integrationTestConfig } from '../unit/testUtils';
 import axios, { HttpStatusCode } from 'axios';
 import https from 'https';
 import fs from 'fs/promises';
-import { COMPRESSIONTYPE, ModelTrainingExecution, TRAININGDATATYPE, TRAININGSTATUS } from '../../src/types/trainerTypes';
+import { COMPRESSIONTYPE, IConfig, ModelTrainingExecution, TRAININGDATATYPE, TRAININGSTATUS, UploadTrainingData } from '../../src/types/trainerTypes';
 import { StorageDaoFactory } from '../../src/dao/storageDaoFactory';
 import { v4 as uuidv4 } from 'uuid';
+import { ModelTrainingController } from '../../src/controller/modelTrainingController';
+import { ReadStream } from 'fs';
+
+export class SampleModelTrainingController extends ModelTrainingController {
+    constructor(config?: IConfig) {
+        super(config || integrationTestConfig);
+    }
+
+    public override async uploadTrainingData(uploadTrainingData: UploadTrainingData): Promise<TRAININGSTATUS> { 
+        return await super.uploadTrainingData(uploadTrainingData);
+    }
+
+    public override async trainModel(): Promise<ModelTrainingExecution> {
+        return await super.trainModel();
+    }
+
+    public override async getModelTrainingExecution(executionId: string): Promise<ModelTrainingExecution> {
+        return await super.getModelTrainingExecution(executionId);
+    }
+
+    public override async getLatestTrainedModel(): Promise<ReadStream> {
+        return await super.getLatestTrainedModel();
+    }
+
+    public override async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
+        return await super.getTrainedModelByExecutionId(executionId);
+    }
+}
 
 const axiosClient = axios.create({
     httpsAgent: new https.Agent({
