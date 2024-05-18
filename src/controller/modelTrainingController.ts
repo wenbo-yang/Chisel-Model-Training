@@ -31,9 +31,13 @@ export class ModelTrainingController {
         return trainingDataStatus;
     }
 
-    protected async trainModel(): Promise<ModelTrainingExecution> {
+    protected async startModelTraining(): Promise<ModelTrainingExecution> {
         const modelTrainingExecution = await this.modelTrainingModel.startModelTraining();
         return modelTrainingExecution;
+    }
+
+    protected async trainModel(executionId: string): Promise<void> {
+        await this.modelTrainingModel.trainModel(executionId);
     }
 
     protected async getModelTrainingExecution(executionId: string): Promise<ModelTrainingExecution> {

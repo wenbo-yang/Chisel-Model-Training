@@ -17,8 +17,14 @@ export class SampleModelTrainingController extends ModelTrainingController {
         return await super.uploadTrainingData(uploadTrainingData);
     }
 
-    public override async trainModel(): Promise<ModelTrainingExecution> {
-        return await super.trainModel();
+    public override async startModelTraining(): Promise<ModelTrainingExecution> {
+        return super.startModelTraining();
+    }
+
+    public async trainSampleModel(): Promise<ModelTrainingExecution> {
+        const modelTrainingExecution = await super.startModelTraining();
+        await super.trainModel(modelTrainingExecution.executionId);
+        return { ...modelTrainingExecution, status: TRAININGSTATUS.FINISHED };
     }
 
     public override async getModelTrainingExecution(executionId: string): Promise<ModelTrainingExecution> {
@@ -48,22 +54,27 @@ describe('train and get model', () => {
     const modelStorage = StorageDaoFactory.makeModelStorageDao(integrationTestConfig);
     const trainingDataStroage = StorageDaoFactory.makeTrainingDataStorageDao(integrationTestConfig);
 
+    async function readableToString(readable: ReadStream) {
+        let result = '';
+        for await (const chunk of readable) {
+            result += chunk;
+        }
+        return result;
+    }
+
     beforeAll(async () => {
         trainingData = JSON.parse((await fs.readFile(trainingDataUrl)).toString());
     });
 
     describe('training a character', () => {
         describe('POST /trainingData', () => {
-            const uploadTrainingDataUrl = httpsUrl + '/trainingData';
-
-            afterEach(() => {
-                modelStorage.deleteAllTrainingExecutions();
-                trainingDataStroage.deleteAllTrainingData();
+            afterEach(async () => {
+                await modelStorage.deleteAllTrainingExecutions();
+                await trainingDataStroage.deleteAllTrainingData();
             });
 
             it('should return model training status of created when uploading data', async () => {
-                const modelTrainingController = new SampleModelTrainingController();
-                const trainingStatus = await modelTrainingController.uploadTrainingData({
+                const trainingStatus = await new SampleModelTrainingController().uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
@@ -73,216 +84,168 @@ describe('train and get model', () => {
                 expect(trainingStatus).toBe(TRAININGSTATUS.CREATED);
             });
 
-            xit('should respond with 201 created with new data request of the same character', async () => {
-                const firstResponse = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should respond with training status created with new data request of the same character', async () => {
+                const firstStatus = await new SampleModelTrainingController().uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                const secondResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                const secondStatus = await new SampleModelTrainingController().uploadTrainingData({
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(firstResponse.status).toEqual(HttpStatusCode.Created);
-                expect(secondResponse.status).toEqual(HttpStatusCode.Created);
+                expect(firstStatus).toEqual(TRAININGSTATUS.CREATED);
+                expect(secondStatus).toEqual(TRAININGSTATUS.CREATED);
             });
 
-            xit('should respond with 208 AlreadyReported when sending same data of the same character', async () => {
-                const firstResponse = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should respond with no change when sending same data of the same character', async () => {
+                const firstStatus = await new SampleModelTrainingController().uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                const secondResponse = await axiosClient.post(uploadTrainingDataUrl, {
-                    character: '走',
+                const secondStatus = await new SampleModelTrainingController().uploadTrainingData({
+                    model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(firstResponse.status).toEqual(HttpStatusCode.Created);
-                expect(secondResponse.status).toEqual(HttpStatusCode.AlreadyReported);
+                expect(firstStatus).toEqual(TRAININGSTATUS.CREATED);
+                expect(secondStatus).toEqual(TRAININGSTATUS.NOCHANGE);
             });
         });
 
-        xdescribe('POST /trainModel', () => {
-            const uploadTrainingDataUrl = httpsUrl + '/trainingData';
-            const trainModelUrl = httpsUrl + '/trainModel';
-
+        describe('POST /trainModel', () => {
             afterEach(async () => {
                 await modelStorage.deleteAllTrainingExecutions();
                 await trainingDataStroage.deleteAllTrainingData();
             });
 
             it('should respond with with 201 created when request train a new model', async () => {
-                const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
+                const modelTrainingController = new SampleModelTrainingController();
+                const uploadTrainingDataStatus = await modelTrainingController.uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(uploadTrainingDataResponse.status).toEqual(HttpStatusCode.Created);
-                const trainModelResponse = await axiosClient.post(trainModelUrl, {});
+                expect(uploadTrainingDataStatus).toEqual(TRAININGSTATUS.CREATED);
+                const modelTrainingExecution = await modelTrainingController.startModelTraining();
 
-                expect(trainModelResponse.status).toEqual(HttpStatusCode.Created);
-                expect((trainModelResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.INPROGRESS);
+                expect(modelTrainingExecution.status).toEqual(TRAININGSTATUS.INPROGRESS);
             });
         });
 
-        xdescribe('GET /modelExecution', () => {
-            const uploadTrainingDataUrl = httpsUrl + '/trainingData';
-            const trainModelUrl = httpsUrl + '/trainModel';
-            const getModelTrainingExecutionUrl = httpsUrl + '/modelExecution';
-
+        describe('GET /modelExecution', () => {
             afterEach(async () => {
                 await modelStorage.deleteAllTrainingExecutions();
                 await trainingDataStroage.deleteAllTrainingData();
             });
 
-            it(' should respond with 404 not found when trying to fiind an non-existing training execution', async () => {
-                const notExistingExecutionUrl = getModelTrainingExecutionUrl + '/' + uuidv4();
-                await expect(axiosClient.get(notExistingExecutionUrl)).rejects.toThrowError('Request failed with status code 404');
+            it('should throw error when trying to get a non-existing execution', async () => {
+                await expect(new SampleModelTrainingController().getModelTrainingExecution(uuidv4())).rejects.toThrow('Not Found: getModelTrainingExecution: execution is not found');
             });
 
-            it('should respond with with 200 created when getting the status of an existing training execution', async () => {
-                const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should respond in progress when getting the status of an existing training execution', async () => {
+                const modelTrainingController = new SampleModelTrainingController();
+                const uploadTrainingDataStatus = await modelTrainingController.uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(uploadTrainingDataResponse.status).toEqual(HttpStatusCode.Created);
+                expect(uploadTrainingDataStatus).toEqual(TRAININGSTATUS.CREATED);
 
-                const trainModelResponse = await axiosClient.post(trainModelUrl, {});
-                expect(trainModelResponse.status).toEqual(HttpStatusCode.Created);
-                expect((trainModelResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.INPROGRESS);
+                const modelTraingExecution = await modelTrainingController.startModelTraining();
+                expect(modelTraingExecution.status).toEqual(TRAININGSTATUS.INPROGRESS);
 
-                const executionUrl = getModelTrainingExecutionUrl + '/' + (trainModelResponse.data as ModelTrainingExecution).executionId;
-                const getModelTrainingExecutionResponse = await axiosClient.get(executionUrl);
-
-                expect(getModelTrainingExecutionResponse.status).toEqual(HttpStatusCode.Ok);
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.INPROGRESS);
+                const existingModelTrainingExecution = await modelTrainingController.getModelTrainingExecution(modelTraingExecution.executionId);
+                expect(existingModelTrainingExecution.status).toEqual(TRAININGSTATUS.INPROGRESS);
             });
 
-            it('should respond with with 200 when getting the status of a finished execution', async () => {
-                const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should eventually get a finished execution when waiting for that execution', async () => {
+                const modelTrainingController = new SampleModelTrainingController();
+                const uploadTrainingDataStatus = await modelTrainingController.uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(uploadTrainingDataResponse.status).toEqual(HttpStatusCode.Created);
+                expect(uploadTrainingDataStatus).toEqual(TRAININGSTATUS.CREATED);
 
-                const trainModelResponse = await axiosClient.post(trainModelUrl, {});
-                expect(trainModelResponse.status).toEqual(HttpStatusCode.Created);
-                expect((trainModelResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.INPROGRESS);
+                const sampleModelExecution = await modelTrainingController.trainSampleModel();
 
-                const executionUrl = getModelTrainingExecutionUrl + '/' + (trainModelResponse.data as ModelTrainingExecution).executionId;
-                let getModelTrainingExecutionResponse: any;
-
-                do {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    getModelTrainingExecutionResponse = await axiosClient.get(executionUrl);
-                } while ((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status === TRAININGSTATUS.INPROGRESS);
-
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.FINISHED);
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).modelPath).toBeDefined();
+                expect(sampleModelExecution.status).toEqual(TRAININGSTATUS.FINISHED);
             }, 10000);
         });
 
-        xdescribe('GET /latestModel', () => {
-            const uploadTrainingDataUrl = httpsUrl + '/trainingData';
-            const trainModelUrl = httpsUrl + '/trainModel';
-            const getModelTrainingExecutionUrl = httpsUrl + '/modelExecution';
-            const getLatestModel = httpsUrl + '/latestModel';
-
+        describe('GET /latestModel', () => {
             afterEach(async () => {
                 await modelStorage.deleteAllTrainingExecutions();
                 await trainingDataStroage.deleteAllTrainingData();
             });
 
-            it('should respond with with 200 when getting the model of the latest trained execution', async () => {
-                const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should be able to get latest trained execution', async () => {
+                const modelTrainingController = new SampleModelTrainingController();
+                const uploadTrainingDataStatus = await modelTrainingController.uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(uploadTrainingDataResponse.status).toEqual(HttpStatusCode.Created);
+                expect(uploadTrainingDataStatus).toEqual(TRAININGSTATUS.CREATED);
 
-                const trainModelResponse = await axiosClient.post(trainModelUrl, {});
-                expect(trainModelResponse.status).toEqual(HttpStatusCode.Created);
-                expect((trainModelResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.INPROGRESS);
+                const sampleModelExecution = await modelTrainingController.trainSampleModel();
 
-                const executionUrl = getModelTrainingExecutionUrl + '/' + (trainModelResponse.data as ModelTrainingExecution).executionId;
-                let getModelTrainingExecutionResponse: any;
+                expect(sampleModelExecution.status).toEqual(TRAININGSTATUS.FINISHED);
 
-                do {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    getModelTrainingExecutionResponse = await axiosClient.get(executionUrl);
-                } while ((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status === TRAININGSTATUS.INPROGRESS);
+                const readStream = await modelTrainingController.getLatestTrainedModel();
 
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.FINISHED);
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).modelPath).toBeDefined();
+                expect(readStream).toBeDefined();
 
-                const latestModel = await axiosClient.get(getLatestModel);
-
-                expect(latestModel.data).toBeDefined();
-                expect(latestModel.data.type).toEqual('NeuralNetwork');
+                const result = JSON.parse(await readableToString(readStream));
+                expect(result.type).toEqual('NeuralNetwork');
             }, 10000);
         });
 
-        xdescribe('GET /model', () => {
-            const uploadTrainingDataUrl = httpsUrl + '/trainingData';
-            const trainModelUrl = httpsUrl + '/trainModel';
-            const getModelTrainingExecutionUrl = httpsUrl + '/modelExecution';
-            const getModelByExeutionId = httpsUrl + '/model';
-
+        describe('GET /model', () => {
             afterEach(async () => {
                 await modelStorage.deleteAllTrainingExecutions();
                 await trainingDataStroage.deleteAllTrainingData();
             });
 
-            it('should respond with with 200 when getting the model of a finished execution_id', async () => {
-                const uploadTrainingDataResponse = await axiosClient.post(uploadTrainingDataUrl, {
+            it('should get model of a finished training by execution_id', async () => {
+                const modelTrainingController = new SampleModelTrainingController();
+                const uploadTrainingDataStatus = await modelTrainingController.uploadTrainingData({
                     model: '走',
                     dataType: TRAININGDATATYPE.BINARYSTRINGWITHNEWLINE,
                     compression: COMPRESSIONTYPE.PLAIN,
                     data: [trainingData.transformedData.find((s: any) => s.type === 'SKELETON').stroke, trainingData.transformedData.find((s: any) => s.type === 'ORIGINAL').stroke],
-                });
+                } as UploadTrainingData);
 
-                expect(uploadTrainingDataResponse.status).toEqual(HttpStatusCode.Created);
+                expect(uploadTrainingDataStatus).toEqual(TRAININGSTATUS.CREATED);
 
-                const trainModelResponse = await axiosClient.post(trainModelUrl, {});
-                expect(trainModelResponse.status).toEqual(HttpStatusCode.Created);
-                expect((trainModelResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.INPROGRESS);
+                const sampleModelExecution = await modelTrainingController.trainSampleModel();
 
-                const executionUrl = getModelTrainingExecutionUrl + '/' + (trainModelResponse.data as ModelTrainingExecution).executionId;
-                let getModelTrainingExecutionResponse: any;
+                expect(sampleModelExecution.status).toEqual(TRAININGSTATUS.FINISHED);
 
-                do {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    getModelTrainingExecutionResponse = await axiosClient.get(executionUrl);
-                } while ((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status === TRAININGSTATUS.INPROGRESS);
+                const readStream = await modelTrainingController.getTrainedModelByExecutionId(sampleModelExecution.executionId);
+                expect(readStream).toBeDefined();
 
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).status).toEqual(TRAININGSTATUS.FINISHED);
-                expect((getModelTrainingExecutionResponse.data as ModelTrainingExecution).modelPath).toBeDefined();
-
-                const modelByExecutionIdResponse = await axiosClient.get(getModelByExeutionId + '/' + (getModelTrainingExecutionResponse.data as ModelTrainingExecution).executionId);
-
-                expect(modelByExecutionIdResponse.data).toBeDefined();
-                expect(modelByExecutionIdResponse.data.type).toEqual('NeuralNetwork');
+                const result = JSON.parse(await readableToString(readStream));
+                expect(result.type).toEqual('NeuralNetwork');
             }, 10000);
         });
     });
