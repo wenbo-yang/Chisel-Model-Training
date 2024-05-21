@@ -1,5 +1,4 @@
 import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
-import { Config } from '../config';
 import { IConfig, ModelTrainingExecution, TRAININGSTATUS } from '../types/trainerTypes';
 import { ModelStorageDao } from '../dao/modelStorageDao';
 import { StorageDaoFactory } from '../dao/storageDaoFactory';

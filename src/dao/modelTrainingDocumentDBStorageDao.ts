@@ -1,4 +1,3 @@
-import { Config } from '../config';
 import { IConfig } from '../types/trainerTypes';
 import { ModelTrainingDataStorageDao } from './modelTrainingDataStorageDao';
 

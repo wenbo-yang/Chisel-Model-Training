@@ -1,6 +1,5 @@
 import { ModelStorage } from './modelStorage';
 import { IConfig, ModelTrainingExecution, TRAININGSTATUS, TrainingData } from '../types/trainerTypes';
-import { Config } from '../config';
 import { v5 as uuidv5 } from 'uuid';
 import { NeuralNetwork } from 'brain.js';
 import { ungzip } from 'node-gzip';

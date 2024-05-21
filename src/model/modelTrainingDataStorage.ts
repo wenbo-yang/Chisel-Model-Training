@@ -1,4 +1,3 @@
-import { Config } from '../config';
 import { StorageDaoFactory } from '../dao/storageDaoFactory';
 import { ModelTrainingDataStorageDao } from '../dao/modelTrainingDataStorageDao';
 import { IConfig, SavedTrainingData, TrainingData } from '../types/trainerTypes';

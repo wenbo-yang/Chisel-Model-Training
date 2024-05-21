@@ -1,4 +1,3 @@
-import { Config } from '../config';
 import { ModelTrainingDataStorageDao } from './modelTrainingDataStorageDao';
 import { v5 as uuidv5 } from 'uuid';
 import fs from 'fs/promises';
