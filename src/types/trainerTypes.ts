@@ -1,4 +1,4 @@
-export interface UploadTrainingDataRequestBody {
+export interface UploadTrainingData {
     model: string;
     dataType: TRAININGDATATYPE;
     compression: COMPRESSIONTYPE;
@@ -11,8 +11,6 @@ export interface ModelTrainingExecution {
     status: TRAININGSTATUS;
     modelPath?: any;
 }
-
-export type TrainModelResponse = ModelTrainingExecution;
 
 export enum TRAININGSTATUS {
     CREATED = 'CREATED',

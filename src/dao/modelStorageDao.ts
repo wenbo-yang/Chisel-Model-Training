@@ -3,8 +3,6 @@ import { ModelTrainingExecution, TRAININGSTATUS } from '../types/trainerTypes';
 import { ReadStream } from 'fs';
 
 export abstract class ModelStorageDao {
-
-
     constructor() {}
 
     public async getLatestModel(): Promise<ModelTrainingExecution> {

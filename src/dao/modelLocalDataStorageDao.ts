@@ -1,4 +1,3 @@
-import { Config } from '../config';
 import { IConfig, ModelTrainingExecution, NotFoundError, TRAININGSTATUS } from '../types/trainerTypes';
 import { ModelStorageDao } from './modelStorageDao';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,9 +9,9 @@ import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 
 export class ModelLocalDataStorageDao extends ModelStorageDao {
     private config: IConfig;
-    constructor(config?: IConfig) {
+    constructor(config: IConfig) {
         super();
-        this.config = config || new Config();
+        this.config = config;
     }
 
     public override async getLatestModel(): Promise<ModelTrainingExecution> {
@@ -96,7 +95,7 @@ export class ModelLocalDataStorageDao extends ModelStorageDao {
 
     public override async getLatestTrainedModel(): Promise<ReadStream> {
         const executions = await this.getExecutions();
-        let modelPath = undefined
+        let modelPath = undefined;
         for (const execution of executions) {
             if (execution.status === TRAININGSTATUS.FINISHED) {
                 modelPath = execution.modelPath;
@@ -105,7 +104,7 @@ export class ModelLocalDataStorageDao extends ModelStorageDao {
         }
 
         if (!modelPath) {
-            this.notFoundError('getLatestTrainedModel: no model found')
+            this.notFoundError('getLatestTrainedModel: no model found');
         }
 
         return fsSync.createReadStream(modelPath);
@@ -113,12 +112,12 @@ export class ModelLocalDataStorageDao extends ModelStorageDao {
 
     public override async getTrainedModelByExecutionId(executionId: string): Promise<ReadStream> {
         const execution = await this.getModelTrainingExecution(executionId);
-        
+
         if (execution.status !== TRAININGSTATUS.FINISHED) {
             this.notFoundError(`getTrainedModelByExecutionId: ${executionId} model has not finished training yet. Current status: ${execution.status}`);
         }
 
-        return fsSync.createReadStream(execution.modelPath)
+        return fsSync.createReadStream(execution.modelPath);
     }
 
     private get folderPath(): string {
