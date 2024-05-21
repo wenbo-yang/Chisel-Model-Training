@@ -6,8 +6,8 @@ import { IConfig, SavedTrainingData, TrainingData } from '../types/trainerTypes'
 export class ModelTrainingDataStorage {
     private config: IConfig;
     private modelTrainingDataStorageDao: ModelTrainingDataStorageDao;
-    constructor(config?: IConfig, modelTrainingDataStorageDao?: ModelTrainingDataStorageDao) {
-        this.config = config || new Config();
+    constructor(config: IConfig, modelTrainingDataStorageDao?: ModelTrainingDataStorageDao) {
+        this.config = config;
         this.modelTrainingDataStorageDao = modelTrainingDataStorageDao || StorageDaoFactory.makeTrainingDataStorageDao(this.config);
     }
 

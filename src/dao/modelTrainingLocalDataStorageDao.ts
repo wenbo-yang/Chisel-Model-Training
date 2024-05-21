@@ -9,9 +9,9 @@ import path from 'path';
 
 export class ModelTrainingLocalDataStorageDao extends ModelTrainingDataStorageDao {
     private config: IConfig;
-    constructor(config?: IConfig) {
+    constructor(config: IConfig) {
         super();
-        this.config = config || new Config();
+        this.config = config;
     }
 
     public override async getCurrentTrainingData(character: string): Promise<Map<string, string>> {

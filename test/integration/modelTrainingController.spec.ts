@@ -1,6 +1,4 @@
 import { integrationTestConfig } from '../unit/testUtils';
-import axios, { HttpStatusCode } from 'axios';
-import https from 'https';
 import fs from 'fs/promises';
 import { COMPRESSIONTYPE, IConfig, ModelTrainingExecution, TRAININGDATATYPE, TRAININGSTATUS, UploadTrainingData } from '../../src/types/trainerTypes';
 import { StorageDaoFactory } from '../../src/dao/storageDaoFactory';
@@ -39,14 +37,6 @@ export class SampleModelTrainingController extends ModelTrainingController {
         return await super.getTrainedModelByExecutionId(executionId);
     }
 }
-
-const axiosClient = axios.create({
-    httpsAgent: new https.Agent({
-        rejectUnauthorized: false,
-    }),
-});
-
-const httpsUrl = '';
 
 describe('train and get model', () => {
     const trainingDataUrl = './test/integration/data/test_data_for_character_training_running_man.json';

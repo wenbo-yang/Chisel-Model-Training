@@ -13,8 +13,8 @@ export class ModelTrainingModel {
     private modelStorage: ModelStorage;
     private modelTrainingDataStorage: ModelTrainingDataStorage;
 
-    constructor(config?: IConfig, modelStorage?: ModelStorage, modelTrainingDataStorage?: ModelTrainingDataStorage) {
-        this.config = config || new Config();
+    constructor(config: IConfig, modelStorage?: ModelStorage, modelTrainingDataStorage?: ModelTrainingDataStorage) {
+        this.config = config;
         this.modelStorage = modelStorage || new ModelStorage(this.config);
         this.modelTrainingDataStorage = modelTrainingDataStorage || new ModelTrainingDataStorage(this.config);
     }

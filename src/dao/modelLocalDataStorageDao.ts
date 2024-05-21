@@ -1,4 +1,3 @@
-import { Config } from '../config';
 import { IConfig, ModelTrainingExecution, NotFoundError, TRAININGSTATUS } from '../types/trainerTypes';
 import { ModelStorageDao } from './modelStorageDao';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,9 +9,9 @@ import { INeuralNetworkJSON } from 'brain.js/dist/neural-network';
 
 export class ModelLocalDataStorageDao extends ModelStorageDao {
     private config: IConfig;
-    constructor(config?: IConfig) {
+    constructor(config: IConfig) {
         super();
-        this.config = config || new Config();
+        this.config = config;
     }
 
     public override async getLatestModel(): Promise<ModelTrainingExecution> {

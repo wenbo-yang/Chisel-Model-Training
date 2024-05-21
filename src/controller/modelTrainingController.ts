@@ -1,6 +1,3 @@
-import { Request, Response } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { Config } from '../config';
 import { ModelTrainingModel } from '../model/modelTrainingModel';
 import { gzip, ungzip } from 'node-gzip';
 import { COMPRESSIONTYPE, IConfig, ModelTrainingExecution, TRAININGDATATYPE, TRAININGSTATUS, UploadTrainingData } from '../types/trainerTypes';
@@ -10,8 +7,8 @@ export class ModelTrainingController {
     private config: IConfig;
     private modelTrainingModel: ModelTrainingModel;
 
-    constructor(config?: IConfig, modelTrainingModel?: ModelTrainingModel) {
-        this.config = config || new Config();
+    constructor(config: IConfig, modelTrainingModel?: ModelTrainingModel) {
+        this.config = config;
         this.modelTrainingModel = modelTrainingModel || new ModelTrainingModel(this.config);
     }
 

@@ -8,8 +8,8 @@ import { ReadStream } from 'fs';
 export class ModelStorage {
     private config: IConfig;
     private modelStorageDao: ModelStorageDao;
-    constructor(config?: IConfig, modelStorageDao?: ModelStorageDao) {
-        this.config = config || new Config();
+    constructor(config: IConfig, modelStorageDao?: ModelStorageDao) {
+        this.config = config;
         this.modelStorageDao = modelStorageDao || StorageDaoFactory.makeModelStorageDao(this.config);
     }
 
