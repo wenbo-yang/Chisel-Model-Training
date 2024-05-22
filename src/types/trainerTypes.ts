@@ -59,9 +59,3 @@ export class NotFoundError extends Error {
         super(message);
     }
 }
-
-export class DoNotRespondError extends Error {
-    constructor(e: Error) {
-        super(e.message);
-    }
-}
