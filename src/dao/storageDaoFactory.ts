@@ -8,10 +8,10 @@ import { IConfig } from '../types/trainerTypes';
 
 export class StorageDaoFactory {
     public static makeTrainingDataStorageDao(config: IConfig): ModelTrainingDataStorageDao {
-        return config.env === 'development' ? new ModelTrainingLocalDataStorageDao(config) : new ModelTrainingDocumentDBStorageDao(config);
+        return config.env === 'development' || config.env === 'local' ? new ModelTrainingLocalDataStorageDao(config) : new ModelTrainingDocumentDBStorageDao(config);
     }
 
     public static makeModelStorageDao(config: IConfig): ModelStorageDao {
-        return config.env === 'development' ? new ModelLocalDataStorageDao(config) : new ModelDocumentDBStorageDao(config);
+        return config.env === 'development' || config.env === 'local' ? new ModelLocalDataStorageDao(config) : new ModelDocumentDBStorageDao(config);
     }
 }
