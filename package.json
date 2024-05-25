@@ -10,7 +10,7 @@
         "prettier-json": "prettier --config prettier.json --write \"**/*.json\"",
         "prettier": "run-s prettier-ts prettier-json",
         "integration-tests-only": "npx jest --runInBand --testPathPattern=./test/integration",
-        "integration-tests": "run-s integration-tests-only"
+        "integration-tests": "export NODE_ENV=development && run-s integration-tests-only"
     },
     "keywords": [],
     "author": "",
